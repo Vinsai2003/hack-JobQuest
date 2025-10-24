@@ -5,10 +5,10 @@ import { eq, and, desc } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: { userId: string } } // <-- This line is changed
 ) {
   try {
-    const { userId } = params;
+    const { userId } = context.params; // <-- This line is changed
     const { searchParams } = new URL(request.url);
 
     // Validate userId
@@ -46,25 +46,30 @@ export async function GET(
       .offset(offset);
 
     // Get total count for the user with same filters
-    const totalApplications = await db
-      .select()
+    const totalResult = await db
+      .select({ count: db.fn.count() }) // Use db.fn.count() for Drizzle
       .from(applications)
       .where(and(...conditions));
+
+    const total = totalResult[0]?.count ?? 0;
+
 
     if (userApplications.length === 0) {
       return NextResponse.json(
         {
-          error: 'No applications found for this user',
-          code: 'NO_APPLICATIONS_FOUND'
+          applications: [], // Return empty array instead of error
+          total: 0,
+          limit,
+          offset
         },
-        { status: 404 }
+        { status: 200 } // Return 200 OK with empty array
       );
     }
 
     return NextResponse.json(
       {
         applications: userApplications,
-        total: totalApplications.length,
+        total: total,
         limit,
         offset
       },
