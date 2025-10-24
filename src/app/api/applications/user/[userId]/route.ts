@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-// --- CORRECTED IMPORTS (no 'server' folder) ---
-import { db } from '../../../../../db'; // Correct path for DB instance
-import { applications } from '../../../../../db/schema'; // Correct path for schema
-import { eq, and, desc, count } from 'drizzle-orm'; // Added 'count'
 
+// --- FIXED: Using the correct '@/' alias ---
+import { db } from '@/db';
+import { applications } from '@/db/schema';
+// ------------------------------------------
+
+import { eq, and, desc, count } from 'drizzle-orm';
+
+// This is the GET handler for fetching applications for a specific user
 export async function GET(
   request: NextRequest,
   { params }: { params: { userId: string } }
@@ -27,13 +31,17 @@ export async function GET(
 
     // Get query parameters
     const status = searchParams.get('status');
+
+    // Parse limit, default to 20, max of 100
     const limitQuery = parseInt(searchParams.get('limit') ?? '20', 10);
     const limit = isNaN(limitQuery) ? 20 : Math.min(limitQuery, 100);
 
+    // Parse offset, default to 0
     const offsetQuery = parseInt(searchParams.get('offset') ?? '0', 10);
     const offset = isNaN(offsetQuery) ? 0 : offsetQuery;
 
     // Build query conditions
+    // This correctly uses the 'userId' property from your Drizzle schema
     const conditions = [eq(applications.userId, parsedUserId)];
 
     if (status) {
@@ -49,7 +57,6 @@ export async function GET(
       .limit(limit)
       .offset(offset);
 
-    // --- EFFICIENT COUNT QUERY ---
     // Get total count for the user with same filters
     const totalResult = await db
       .select({ count: count() }) // Use count() for efficiency
@@ -70,9 +77,12 @@ export async function GET(
     );
   } catch (error) {
     console.error('GET applications error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       {
-        error: 'Internal server error: ' + (error as Error).message,
+        error: 'Internal server error',
+        details: errorMessage,
       },
       { status: 500 }
     );
