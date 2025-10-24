@@ -1,33 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { applications } from '@/db/schema';
-import { eq, and, desc, count } from 'drizzle-orm';
+// --- CORRECTED IMPORTS (no 'server' folder) ---
+import { db } from '~/db'; // Correct path for DB instance
+import { applications } from '~/db/schema'; // Correct path for schema
+import { eq, and, desc, count } from 'drizzle-orm'; // Added 'count'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } } // <-- Destructure params from the typed context
+  { params }: { params: { userId: string } }
 ) {
   try {
-    const { userId } = params; // <-- This is the corrected way to access params
+    const { userId } = params;
     const { searchParams } = new URL(request.url);
 
-    // Validate userId
-    if (!userId || isNaN(parseInt(userId))) {
+    // Validate userId (ensure it's digits only)
+    if (!/^\d+$/.test(userId)) {
       return NextResponse.json(
         {
           error: 'Valid user ID is required',
-          code: 'INVALID_USER_ID'
+          code: 'INVALID_USER_ID',
         },
         { status: 400 }
       );
     }
 
-    const parsedUserId = parseInt(userId);
+    const parsedUserId = parseInt(userId, 10);
 
     // Get query parameters
     const status = searchParams.get('status');
-    const limit = Math.min(parseInt(searchParams.get('limit') ?? '20'), 100);
-    const offset = parseInt(searchParams.get('offset') ?? '0');
+    const limitQuery = parseInt(searchParams.get('limit') ?? '20', 10);
+    const limit = isNaN(limitQuery) ? 20 : Math.min(limitQuery, 100);
+
+    const offsetQuery = parseInt(searchParams.get('offset') ?? '0', 10);
+    const offset = isNaN(offsetQuery) ? 0 : offsetQuery;
 
     // Build query conditions
     const conditions = [eq(applications.userId, parsedUserId)];
@@ -36,7 +40,7 @@ export async function GET(
       conditions.push(eq(applications.status, status));
     }
 
-    // Fetch applications with filters
+    // Fetch applications with filters (paginated)
     const userApplications = await db
       .select()
       .from(applications)
@@ -45,6 +49,7 @@ export async function GET(
       .limit(limit)
       .offset(offset);
 
+    // --- EFFICIENT COUNT QUERY ---
     // Get total count for the user with same filters
     const totalResult = await db
       .select({ count: count() }) // Use count() for efficiency
@@ -53,13 +58,13 @@ export async function GET(
 
     const total = totalResult[0]?.count ?? 0;
 
-    // Return 200 OK even if no applications are found
+    // Return 200 OK
     return NextResponse.json(
       {
         applications: userApplications,
         total: total,
         limit,
-        offset
+        offset,
       },
       { status: 200 }
     );
@@ -67,7 +72,7 @@ export async function GET(
     console.error('GET applications error:', error);
     return NextResponse.json(
       {
-        error: 'Internal server error: ' + (error as Error).message
+        error: 'Internal server error: ' + (error as Error).message,
       },
       { status: 500 }
     );
