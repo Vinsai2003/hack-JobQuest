@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../../db';
-import { applications } from '../../../../../db/schema';
+import { db } from '@/db';
+import { applications } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 const VALID_STATUSES = ['draft', 'submitted', 'under_review', 'interview', 'rejected', 'accepted'];
@@ -41,6 +41,8 @@ export async function GET(request: NextRequest) {
     const jobId = searchParams.get('jobId');
     const status = searchParams.get('status');
 
+    let query: any = db.select().from(applications);
+
   // Build filter conditions
   const conditions: any[] = [];
     
@@ -74,13 +76,11 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(applications.status, status));
     }
 
-    // Execute query depending on whether we have conditions to avoid complex generic types
-    let results;
     if (conditions.length > 0) {
-      results = await db.select().from(applications).where(and(...conditions)).limit(limit).offset(offset);
-    } else {
-      results = await db.select().from(applications).limit(limit).offset(offset);
+      query = query.where(and(...conditions));
     }
+
+    const results = await query.limit(limit).offset(offset);
 
     return NextResponse.json(results, { status: 200 });
   } catch (error) {
