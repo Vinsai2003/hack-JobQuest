@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { applications } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, count } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { userId: string } } // <-- This line is changed
+  { params }: { params: { userId: string } } // <-- Destructure params from the typed context
 ) {
   try {
-    const { userId } = context.params; // <-- This line is changed
+    const { userId } = params; // <-- This is the corrected way to access params
     const { searchParams } = new URL(request.url);
 
     // Validate userId
@@ -45,16 +45,15 @@ export async function GET(
       .limit(limit)
       .offset(offset);
 
-    // Get total count for the user with same filters (simple count)
-    const totalRows = await db
-      .select()
+    // Get total count for the user with same filters
+    const totalResult = await db
+      .select({ count: count() }) // Use count() for efficiency
       .from(applications)
       .where(and(...conditions));
 
-    const total = totalRows.length;
+    const total = totalResult[0]?.count ?? 0;
 
-    // Return 200 OK with an empty array if no applications are found
-    // (This replaces the 404 error, which is better practice)
+    // Return 200 OK even if no applications are found
     return NextResponse.json(
       {
         applications: userApplications,
