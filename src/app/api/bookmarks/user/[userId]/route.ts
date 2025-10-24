@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { bookmarks } from '@/db/schema';
-import { eq, desc, count } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: { userId: string } } // <-- This is the corrected type
 ) {
   try {
-    const { userId } = params;
+    const { userId } = context.params; // <-- This is the corrected way to access params
 
     // Validate userId
     if (!userId || isNaN(parseInt(userId))) {
@@ -21,8 +21,7 @@ export async function GET(
       );
     }
 
-    const userIdInt = parseInt(userId);
-
+    // Keep userId as a string because bookmarks.userId is a string column
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const limit = Math.min(
@@ -35,16 +34,16 @@ export async function GET(
     const userBookmarks = await db
       .select()
       .from(bookmarks)
-      .where(eq(bookmarks.userId, userIdInt))
+      .where(eq(bookmarks.userId, userId))
       .orderBy(desc(bookmarks.createdAt))
       .limit(limit)
       .offset(offset);
 
     // Get total count of bookmarks for this user
     const totalResult = await db
-      .select({ count: count() })
+      .select({ count: sql<number>`count(*)` })
       .from(bookmarks)
-      .where(eq(bookmarks.userId, userIdInt));
+      .where(eq(bookmarks.userId, userId));
 
     const total = totalResult[0]?.count ?? 0;
 
@@ -65,3 +64,4 @@ export async function GET(
     );
   }
 }
+
