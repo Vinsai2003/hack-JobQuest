@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 // --- CORRECTED IMPORTS (no 'server' folder) ---
-import { db } from '~/db'; // Correct path for DB instance
-import { applications } from '~/db/schema'; // Correct path for schema
+import { db } from '../../../../../db'; // Correct path for DB instance
+import { applications } from '../../../../../db/schema'; // Correct path for schema
 import { eq, and, desc, count } from 'drizzle-orm'; // Added 'count'
 
 export async function GET(
