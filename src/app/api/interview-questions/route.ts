@@ -67,9 +67,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build dynamic query based on filters
-    let query = db.select().from(interviewQuestions);
-
-    const conditions = [];
+    const conditions: any[] = [];
     if (category) {
       conditions.push(eq(interviewQuestions.category, category));
     }
@@ -77,12 +75,13 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(interviewQuestions.difficulty, difficulty));
     }
 
+    // Execute query directly depending on whether conditions exist
+    let results;
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      results = await db.select().from(interviewQuestions).where(and(...conditions));
+    } else {
+      results = await db.select().from(interviewQuestions);
     }
-
-    // Execute query
-    let results = await query;
 
     // Handle random selection
     if (random) {

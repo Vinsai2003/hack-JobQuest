@@ -41,10 +41,8 @@ export async function GET(request: NextRequest) {
     const jobId = searchParams.get('jobId');
     const status = searchParams.get('status');
 
-    let query = db.select().from(applications);
-
-    // Build filter conditions
-    const conditions = [];
+  // Build filter conditions
+  const conditions: any[] = [];
     
     if (userId) {
       if (isNaN(parseInt(userId))) {
@@ -76,11 +74,13 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(applications.status, status));
     }
 
+    // Execute query depending on whether we have conditions to avoid complex generic types
+    let results;
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      results = await db.select().from(applications).where(and(...conditions)).limit(limit).offset(offset);
+    } else {
+      results = await db.select().from(applications).limit(limit).offset(offset);
     }
-
-    const results = await query.limit(limit).offset(offset);
 
     return NextResponse.json(results, { status: 200 });
   } catch (error) {

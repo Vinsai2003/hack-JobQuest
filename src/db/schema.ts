@@ -41,7 +41,8 @@ export const skills = sqliteTable('skills', {
 // User Skills junction table
 export const userSkills = sqliteTable('user_skills', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: text('user_id').notNull().references(() => user.id),
+  userId: integer('user_id').notNull().references(() => user.id),
+  skillId: integer('skill_id').notNull().references(() => skills.id),
   proficiencyLevel: text('proficiency_level').notNull(), // 'beginner', 'intermediate', 'advanced', 'expert'
 });
 
@@ -56,7 +57,7 @@ export const jobSkills = sqliteTable('job_skills', {
 // Applications table
 export const applications = sqliteTable('applications', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: text('user_id').notNull().references(() => user.id),
+  userId: integer('user_id').notNull().references(() => user.id),
   jobId: integer('job_id').notNull().references(() => jobs.id),
   status: text('status').notNull().default('draft'), // 'draft', 'submitted', 'under_review', 'interview', 'rejected', 'accepted'
   coverLetter: text('cover_letter'),
@@ -67,7 +68,7 @@ export const applications = sqliteTable('applications', {
 // Bookmarks table
 export const bookmarks = sqliteTable('bookmarks', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: text('user_id').notNull().references(() => user.id),
+  userId: integer('user_id').notNull().references(() => user.id),
   jobId: integer('job_id').notNull().references(() => jobs.id),
   createdAt: text('created_at').notNull(),
 });
@@ -83,7 +84,7 @@ export const interviewQuestions = sqliteTable('interview_questions', {
 
 // Auth tables for better-auth
 export const user = sqliteTable("user", {
-  id: text("id").primaryKey(),
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   emailVerified: integer("email_verified", { mode: "boolean" })
@@ -114,7 +115,7 @@ export const session = sqliteTable("session", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  userId: text("user_id")
+  userId: integer("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
 });
@@ -123,7 +124,7 @@ export const account = sqliteTable("account", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
-  userId: text("user_id")
+  userId: integer("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),

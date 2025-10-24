@@ -41,10 +41,10 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const category = searchParams.get('category');
 
-    let query = db.select().from(skills);
+  let query = db.select().from(skills);
 
-    // Build where conditions
-    const conditions = [];
+  // Build where conditions
+  const conditions: any[] = [];
 
     if (category) {
       if (!VALID_CATEGORIES.includes(category)) {
@@ -63,11 +63,13 @@ export async function GET(request: NextRequest) {
       conditions.push(like(skills.name, `%${search}%`));
     }
 
+    // Execute depending on whether conditions exist to avoid Drizzle generic issues
+    let results;
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      results = await db.select().from(skills).where(and(...conditions)).limit(limit).offset(offset);
+    } else {
+      results = await db.select().from(skills).limit(limit).offset(offset);
     }
-
-    const results = await query.limit(limit).offset(offset);
 
     return NextResponse.json(results, { status: 200 });
   } catch (error) {

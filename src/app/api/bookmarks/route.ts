@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     let query = db.select().from(bookmarks);
 
     // Build filter conditions
-    const conditions = [];
+      const conditions: any[] = [];
     
     if (userId) {
       if (isNaN(parseInt(userId))) {
@@ -72,13 +72,15 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(bookmarks.jobId, parseInt(jobId)));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+      // Execute query depending on whether we have conditions to avoid complex generic types
+      let results;
+      if (conditions.length > 0) {
+        results = await db.select().from(bookmarks).where(and(...conditions)).limit(limit).offset(offset);
+      } else {
+        results = await db.select().from(bookmarks).limit(limit).offset(offset);
+      }
 
-    const results = await query.limit(limit).offset(offset);
-
-    return NextResponse.json(results, { status: 200 });
+      return NextResponse.json(results, { status: 200 });
   } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json(

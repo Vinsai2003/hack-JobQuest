@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { users } from '@/db/schema';
+import { user } from '@/db/schema';
 
 async function main() {
     const sampleUsers = [
@@ -10,8 +10,8 @@ async function main() {
             experienceLevel: 'entry',
             location: 'San Francisco',
             resumeUrl: 'https://example.com/resumes/sarah-chen.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
         {
             email: 'marcus.williams@email.com',
@@ -20,8 +20,8 @@ async function main() {
             experienceLevel: 'mid',
             location: 'New York',
             resumeUrl: 'https://example.com/resumes/marcus-williams.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
         {
             email: 'emily.rodriguez@email.com',
@@ -30,8 +30,8 @@ async function main() {
             experienceLevel: 'entry',
             location: 'Austin',
             resumeUrl: 'https://example.com/resumes/emily-rodriguez.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
         {
             email: 'david.kim@email.com',
@@ -40,8 +40,8 @@ async function main() {
             experienceLevel: 'mid',
             location: 'Seattle',
             resumeUrl: 'https://example.com/resumes/david-kim.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
         {
             email: 'jennifer.patel@email.com',
@@ -50,8 +50,8 @@ async function main() {
             experienceLevel: 'senior',
             location: 'San Francisco',
             resumeUrl: 'https://example.com/resumes/jennifer-patel.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
         {
             email: 'alex.thompson@email.com',
@@ -60,8 +60,8 @@ async function main() {
             experienceLevel: 'entry',
             location: 'Boston',
             resumeUrl: 'https://example.com/resumes/alex-thompson.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
         {
             email: 'maria.garcia@email.com',
@@ -70,8 +70,8 @@ async function main() {
             experienceLevel: 'mid',
             location: 'Remote',
             resumeUrl: 'https://example.com/resumes/maria-garcia.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
         {
             email: 'james.anderson@email.com',
@@ -80,8 +80,8 @@ async function main() {
             experienceLevel: 'entry',
             location: 'Austin',
             resumeUrl: 'https://example.com/resumes/james-anderson.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
         {
             email: 'lisa.nguyen@email.com',
@@ -90,8 +90,8 @@ async function main() {
             experienceLevel: 'senior',
             location: 'New York',
             resumeUrl: 'https://example.com/resumes/lisa-nguyen.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
         {
             email: 'robert.martinez@email.com',
@@ -100,12 +100,12 @@ async function main() {
             experienceLevel: 'mid',
             location: 'Remote',
             resumeUrl: 'https://example.com/resumes/robert-martinez.pdf',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
     ];
 
-    await db.insert(users).values(sampleUsers);
+    await db.insert(user).values(sampleUsers);
     
     console.log('✅ Users seeder completed successfully');
 }

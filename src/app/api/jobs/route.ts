@@ -42,9 +42,8 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') ?? '0');
     const status = searchParams.get('status');
 
-    let query = db.select().from(jobs).orderBy(desc(jobs.postedDate));
-
-    // Apply status filter if provided
+    // Run query differently depending on whether a status filter is provided
+    let results;
     if (status) {
       if (!JOB_STATUSES.includes(status as any)) {
         return NextResponse.json(
@@ -52,16 +51,23 @@ export async function GET(request: NextRequest) {
           { status: 400 }
         );
       }
-      query = query.where(eq(jobs.status, status));
+
+      results = await db
+        .select()
+        .from(jobs)
+        .where(eq(jobs.status, status))
+        .orderBy(desc(jobs.postedDate))
+        .limit(limit)
+        .offset(offset);
+    } else {
+      results = await db.select().from(jobs).orderBy(desc(jobs.postedDate)).limit(limit).offset(offset);
     }
 
-    const results = await query.limit(limit).offset(offset);
-
     return NextResponse.json(results, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error.message },
+      { error: 'Internal server error: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }
@@ -179,10 +185,10 @@ export async function POST(request: NextRequest) {
     const newJob = await db.insert(jobs).values(insertData).returning();
 
     return NextResponse.json(newJob[0], { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('POST error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error.message },
+      { error: 'Internal server error: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }
@@ -323,10 +329,10 @@ export async function PUT(request: NextRequest) {
       .returning();
 
     return NextResponse.json(updatedJob[0], { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('PUT error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error.message },
+      { error: 'Internal server error: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }
@@ -370,10 +376,10 @@ export async function DELETE(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('DELETE error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error.message },
+      { error: 'Internal server error: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }

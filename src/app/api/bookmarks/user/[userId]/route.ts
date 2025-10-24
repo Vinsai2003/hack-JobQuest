@@ -1,64 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { bookmarks } from '@/db/schema';
-import { eq, desc, sql } from 'drizzle-orm';
+import { applications, bookmarks } from '@/db/schema';
+import { eq, and, desc } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { userId: string } } // <-- This is the corrected type
+  context: { params: { userId: string } } // <-- This line is changed
 ) {
   try {
-    const { userId } = context.params; // <-- This is the corrected way to access params
+    const { userId } = context.params; // <-- This line is changed
+    const { searchParams } = new URL(request.url);
 
     // Validate userId
     if (!userId || isNaN(parseInt(userId))) {
       return NextResponse.json(
         {
           error: 'Valid user ID is required',
-          code: 'INVALID_USER_ID',
+          code: 'INVALID_USER_ID'
         },
         { status: 400 }
       );
     }
 
-    // Keep userId as a string because bookmarks.userId is a string column
+  const parsedUserId = parseInt(userId);
+
     // Get query parameters
-    const { searchParams } = new URL(request.url);
-    const limit = Math.min(
-      parseInt(searchParams.get('limit') ?? '50'),
-      100
-    );
+    const status = searchParams.get('status');
+    const limit = Math.min(parseInt(searchParams.get('limit') ?? '20'), 100);
     const offset = parseInt(searchParams.get('offset') ?? '0');
 
-    // Fetch bookmarks for the user
+    // Build query conditions
+  const conditions = [eq(bookmarks.userId, parsedUserId)];
+
+    if (status) {
+      conditions.push(eq(applications.status, status));
+    }
+
+    // Fetch bookmarks with filters
     const userBookmarks = await db
       .select()
       .from(bookmarks)
-      .where(eq(bookmarks.userId, userId))
+      .where(and(...conditions))
       .orderBy(desc(bookmarks.createdAt))
       .limit(limit)
       .offset(offset);
 
-    // Get total count of bookmarks for this user
-    const totalResult = await db
-      .select({ count: sql<number>`count(*)` })
+    // Get total count for the user with same filters (simple count)
+    const totalRows = await db
+      .select()
       .from(bookmarks)
-      .where(eq(bookmarks.userId, userId));
+      .where(and(...conditions));
 
-    const total = totalResult[0]?.count ?? 0;
+    const total = totalRows.length;
 
+    // Return 200 OK with an empty array if no bookmarks are found
     return NextResponse.json(
       {
         bookmarks: userBookmarks,
         total,
+        limit,
+        offset
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error('GET bookmarks error:', error);
+    console.error('GET applications error:', error);
     return NextResponse.json(
       {
-        error: 'Internal server error: ' + (error as Error).message,
+        error: 'Internal server error: ' + (error as Error).message
       },
       { status: 500 }
     );

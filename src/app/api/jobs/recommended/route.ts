@@ -229,10 +229,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(paginatedRecommendations);
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json(
-      { error: 'Internal server error: ' + error.message },
+      { error: 'Internal server error: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }

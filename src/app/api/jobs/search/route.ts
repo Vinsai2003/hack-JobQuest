@@ -134,37 +134,57 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Build the query
-    let query = db.select().from(jobs);
-
-    // Apply WHERE conditions
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    // Apply sorting
+    // Build and execute the final query directly to avoid Drizzle generic narrowing
     const sortColumn = {
       postedDate: jobs.postedDate,
       salaryMin: jobs.salaryMin,
       salaryMax: jobs.salaryMax,
-      title: jobs.title
-    }[sortField];
+      title: jobs.title,
+    }[sortField] as any;
 
-    if (sortOrder === 'desc') {
-      query = query.orderBy(desc(sortColumn));
+    let results;
+    if (conditions.length > 0) {
+      if (sortOrder === 'desc') {
+        results = await db
+          .select()
+          .from(jobs)
+          .where(and(...conditions))
+          .orderBy(desc(sortColumn))
+          .limit(limit)
+          .offset(offset);
+      } else {
+        results = await db
+          .select()
+          .from(jobs)
+          .where(and(...conditions))
+          .orderBy(asc(sortColumn))
+          .limit(limit)
+          .offset(offset);
+      }
     } else {
-      query = query.orderBy(asc(sortColumn));
+      if (sortOrder === 'desc') {
+        results = await db
+          .select()
+          .from(jobs)
+          .orderBy(desc(sortColumn))
+          .limit(limit)
+          .offset(offset);
+      } else {
+        results = await db
+          .select()
+          .from(jobs)
+          .orderBy(asc(sortColumn))
+          .limit(limit)
+          .offset(offset);
+      }
     }
-
-    // Apply pagination
-    const results = await query.limit(limit).offset(offset);
 
     return NextResponse.json(results, { status: 200 });
 
   } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json({
-      error: 'Internal server error: ' + error.message
+      error: 'Internal server error: ' + (error instanceof Error ? error.message : String(error))
     }, { status: 500 });
   }
 }
