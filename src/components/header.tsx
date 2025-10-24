@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { authClient, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useCustomer } from "autumn-js/react";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -29,7 +28,6 @@ export const HeroHeader = () => {
   const [menuState, setMenuState] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
   const { data: session, isPending, refetch } = useSession();
-  const { customer, isLoading: customerLoading } = useCustomer();
   const router = useRouter();
 
   React.useEffect(() => {
@@ -51,33 +49,6 @@ export const HeroHeader = () => {
       router.push("/");
     }
   };
-
-  const handleBillingPortal = async () => {
-    try {
-      const res = await fetch("/api/billing-portal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ returnUrl: window.location.href }),
-      });
-
-      const data = await res.json();
-      if (data?.url) {
-        const isInIframe = window.self !== window.top;
-        if (isInIframe) {
-          window.parent.postMessage(
-            { type: "OPEN_EXTERNAL_URL", data: { url: data.url } },
-            "*"
-          );
-        } else {
-          window.open(data.url, "_blank", "noopener,noreferrer");
-        }
-      }
-    } catch (error) {
-      toast.error("Failed to open billing portal");
-    }
-  };
-
-  const currentPlan = customer?.products?.at(-1);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background">
@@ -148,14 +119,6 @@ export const HeroHeader = () => {
                 <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
                   {session?.user ? (
                     <div className="flex items-center gap-3">
-                      {!customerLoading && currentPlan && (
-                        <Badge 
-                          variant={currentPlan.id === "free" ? "secondary" : "default"}
-                          className="hidden sm:inline-flex"
-                        >
-                          {currentPlan.name}
-                        </Badge>
-                      )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -169,14 +132,6 @@ export const HeroHeader = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
                           <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                          {!customerLoading && currentPlan && (
-                            <div className="px-2 py-1.5 text-sm">
-                              <span className="text-muted-foreground">Plan: </span>
-                              <Badge variant={currentPlan.id === "free" ? "secondary" : "default"} className="text-xs">
-                                {currentPlan.name}
-                              </Badge>
-                            </div>
-                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem asChild>
                             <Link href="/profile" className="cursor-pointer">
@@ -190,12 +145,6 @@ export const HeroHeader = () => {
                               My Applications
                             </Link>
                           </DropdownMenuItem>
-                          {currentPlan && currentPlan.id !== "free" && (
-                            <DropdownMenuItem onClick={handleBillingPortal} className="cursor-pointer">
-                              <CreditCard className="mr-2 h-4 w-4" />
-                              Manage Billing
-                            </DropdownMenuItem>
-                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600">
                             <LogOut className="mr-2 h-4 w-4" />

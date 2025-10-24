@@ -1,17 +1,17 @@
 import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
 
-// Users table
-export const users = sqliteTable('users', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  email: text('email').notNull().unique(),
-  name: text('name').notNull(),
-  bio: text('bio'),
-  experienceLevel: text('experience_level').notNull(), // 'entry', 'mid', 'senior'
-  location: text('location'),
-  resumeUrl: text('resume_url'),
-  createdAt: text('created_at').notNull(),
-  updatedAt: text('updated_at').notNull(),
-});
+// Users table (This is commented out as it was merged into the 'user' table below)
+// export const users = sqliteTable('users', {
+//   id: integer('id').primaryKey({ autoIncrement: true }),
+//   email: text('email').notNull().unique(),
+//   name: text('name').notNull(),
+//   bio: text('bio'),
+//   experienceLevel: text('experience_level').notNull(), // 'entry', 'mid', 'senior'
+//   location: text('location'),
+//   resumeUrl: text('resume_url'),
+//   createdAt: text('created_at').notNull(),
+//   updatedAt: text('updated_at').notNull(),
+// });
 
 // Jobs table
 export const jobs = sqliteTable('jobs', {
@@ -41,8 +41,7 @@ export const skills = sqliteTable('skills', {
 // User Skills junction table
 export const userSkills = sqliteTable('user_skills', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.id),
-  skillId: integer('skill_id').notNull().references(() => skills.id),
+  userId: text('user_id').notNull().references(() => user.id),
   proficiencyLevel: text('proficiency_level').notNull(), // 'beginner', 'intermediate', 'advanced', 'expert'
 });
 
@@ -57,7 +56,7 @@ export const jobSkills = sqliteTable('job_skills', {
 // Applications table
 export const applications = sqliteTable('applications', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: text('user_id').notNull().references(() => user.id),
   jobId: integer('job_id').notNull().references(() => jobs.id),
   status: text('status').notNull().default('draft'), // 'draft', 'submitted', 'under_review', 'interview', 'rejected', 'accepted'
   coverLetter: text('cover_letter'),
@@ -68,7 +67,7 @@ export const applications = sqliteTable('applications', {
 // Bookmarks table
 export const bookmarks = sqliteTable('bookmarks', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: text('user_id').notNull().references(() => user.id),
   jobId: integer('job_id').notNull().references(() => jobs.id),
   createdAt: text('created_at').notNull(),
 });
@@ -91,6 +90,14 @@ export const user = sqliteTable("user", {
     .$defaultFn(() => false)
     .notNull(),
   image: text("image"),
+
+  // --- Columns copied from 'users' table ---
+  bio: text('bio'),
+  experienceLevel: text('experience_level'), // You might want to add .notNull()
+  location: text('location'),
+  resumeUrl: text('resume_url'),
+  // --- End of copied columns ---
+
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),

@@ -4,8 +4,9 @@ import "./globals.css";
 import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 import ErrorReporter from "@/components/ErrorReporter";
 import Script from "next/script";
-import { Toaster } from "@/components/ui/sonner";
-import { AutumnProvider } from "@/components/autumn/autumn-provider";
+import { Toaster } from "sonner";
+import { cn } from "@/lib/utils";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,9 +46,16 @@ export default function RootLayout({
           data-debug="true"
           data-custom-data='{"appName": "YourApp", "version": "1.0.0", "greeting": "hi"}'
         />
-        <AutumnProvider>
-          {children}
-        </AutumnProvider>
+        <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          geistSans.variable,
+          geistMono.variable
+        )}
+      >
+        {children}
+        <Toaster />
+      </body>
         <Toaster />
         <VisualEditsMessenger />
       </body>

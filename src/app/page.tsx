@@ -7,7 +7,6 @@ import { FeatureThree } from "@/components/FeatureThree";
 import FooterSection from "@/components/FooterSection";
 import { HeroHeader } from "@/components/header";
 import HeroSection from "@/components/HeroSection";
-import { PricingTable } from "@/components/autumn/pricing-table";
 import { TestimonialSection } from "@/components/TestimonialSection";
 import Image from "next/image";
 
@@ -22,7 +21,6 @@ export default function Home() {
       <BentoGrid />
       <FeatureThree />
       <TestimonialSection />
-      <PricingTable />
       <FAQs />
       <FooterSection />
     </div>
