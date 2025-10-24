@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// --- FIXED: Using the correct '@/' alias ---
+// --- Using the correct '@/' alias ---
 import { db } from '@/db';
 import { applications } from '@/db/schema';
-// ------------------------------------------
+// ------------------------------------
 
 import { eq, and, desc, count } from 'drizzle-orm';
 
 // This is the GET handler for fetching applications for a specific user
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: { userId: string } } // <-- THIS IS THE CORRECT SIGNATURE
 ) {
   try {
     const { userId } = params;
